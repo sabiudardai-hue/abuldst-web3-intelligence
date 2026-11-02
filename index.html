@@ -1,0 +1,157 @@
+index.html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#080d18">
+<title>Abuldst Web3 Intelligence</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#080d18;color:#edf3ff;font-family:Arial,sans-serif}
+header{padding:22px 18px;border-bottom:1px solid #202b40}
+.logo{font-size:22px;font-weight:800;color:#62e6b2}
+.sub{color:#91a0b8;font-size:12px;margin-top:7px}
+main{max-width:1050px;margin:auto;padding:20px 16px}
+h2{font-size:19px;margin:10px 0}
+.muted{color:#91a0b8;font-size:13px;line-height:1.6}
+.status{display:inline-block;background:#12352e;color:#62e6b2;padding:7px 10px;border-radius:20px;font-size:11px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:13px;margin:18px 0}
+.card{background:#111c2d;border:1px solid #263650;border-radius:13px;padding:17px}
+.card h3{font-size:15px;margin:0 0 10px}
+.value{font-size:24px;font-weight:bold;margin:12px 0;color:#62e6b2}
+button{background:#62e6b2;color:#07150f;border:0;padding:12px 15px;border-radius:8px;font-weight:bold;cursor:pointer}
+input,select{width:100%;padding:13px;background:#091322;border:1px solid #34435b;border-radius:8px;color:white;margin:8px 0 13px}
+button.secondary{background:#263650;color:white}
+.panel{background:#111c2d;border:1px solid #263650;border-radius:13px;padding:17px;margin:16px 0}
+.result{padding:12px;background:#091322;border-radius:8px;margin-top:12px;line-height:1.6;font-size:13px}
+footer{text-align:center;color:#71819a;font-size:11px;padding:30px}
+</style>
+</head>
+<body>
+<header>
+ <div class="logo">◈ ABULDST INTELLIGENCE</div>
+ <div class="sub">Multi-chain DEX & Smart Contract Research</div>
+</header>
+<main>
+ <span class="status">● SYSTEM ONLINE — DEMO MODE</span>
+ <h2>Intelligence Dashboard</h2>
+ <p class="muted">Discover market activity and investigate smart contract risks across supported blockchains.</p>
+
+ <div class="grid">
+  <div class="card">
+   <h3>◈ DEX Signal Scanner</h3>
+   <div class="value">Multi-chain</div>
+   <p class="muted">Discover tokens, liquidity and unusual market activity.</p>
+  </div>
+  <div class="card">
+   <h3>⬡ Security Scanner</h3>
+   <div class="value">Contract Analysis</div>
+   <p class="muted">Investigate token permissions and potential security risks.</p>
+  </div>
+  <div class="card">
+   <h3>◎ Network Coverage</h3>
+   <div class="value">EVM + Solana</div>
+   <p class="muted">Multi-chain support planned.</p>
+  </div>
+ </div>
+
+ <section class="panel">
+  <h2>DEX Token Research</h2>
+  <p class="muted">Search token market pairs by contract address or token name.</p>
+  <label for="network">Blockchain</label>
+  <select id="network">
+   <option value="base">Base</option>
+   <option value="ethereum">Ethereum</option>
+   <option value="solana">Solana</option>
+   <option value="bsc">BNB Chain</option>
+   <option value="arbitrum">Arbitrum</option>
+   <option value="polygon">Polygon</option>
+  </select>
+  <label for="token">Token address or search term</label>
+  <input id="token" placeholder="Enter token address or name">
+  <button onclick="searchToken()">Search DEX</button>
+  <div id="dexResult" class="result">Search results will appear here.</div>
+ </section>
+
+ <section class="panel">
+  <h2>Smart Contract Security</h2>
+  <p class="muted">Check supported token contracts for known risk indicators.</p>
+  <label for="securityNetwork">Blockchain</label>
+  <select id="securityNetwork">
+   <option value="1">Ethereum</option>
+   <option value="8453">Base</option>
+   <option value="56">BNB Chain</option>
+   <option value="42161">Arbitrum</option>
+   <option value="137">Polygon</option>
+   <option value="10">Optimism</option>
+  </select>
+  <label for="contract">Contract address</label>
+  <input id="contract" placeholder="Paste contract address">
+  <button onclick="checkSecurity()">Check Security</button>
+  <div id="securityResult" class="result">Security report will appear here.</div>
+ </section>
+ <p class="muted">Research tool only. Results are indicators, not guarantees of safety or investment advice.</p>
+</main>
+<footer>ABULDST WEB3 INTELLIGENCE · BUILDING MULTI-CHAIN TOOLS</footer>
+<script>
+async function searchToken(){
+ const q=document.getElementById("token").value.trim();
+ const chain=document.getElementById("network").value;
+ const box=document.getElementById("dexResult");
+ if(!q){box.textContent="Please enter a token name or address.";return}
+ box.textContent="Searching DEX market data...";
+ try{
+  const url="https://api.dexscreener.com/latest/dex/search/?q="+encodeURIComponent(q);
+  const response=await fetch(url);
+  if(!response.ok)throw new Error("Market data unavailable");
+  const data=await response.json();
+  const pairs=(data.pairs||[]).filter(p=>p.chainId===chain).slice(0,5);
+  if(!pairs.length){box.textContent="No matching pairs found on this chain. Try another network or address.";return}
+  box.innerHTML=pairs.map(p=>`
+   <div style="border-bottom:1px solid #263650;padding:10px 0">
+   <b>${safe(p.baseToken.symbol)} / ${safe(p.quoteToken.symbol)}</b><br>
+   Price: $${Number(p.priceUsd||0).toPrecision(6)}<br>
+   Liquidity: $${Number(p.liquidity?.usd||0).toLocaleString()}<br>
+   24h volume: $${Number(p.volume?.h24||0).toLocaleString()}<br>
+   24h change: ${Number(p.priceChange?.h24||0).toFixed(2)}%
+   </div>`).join("");
+ }catch(e){box.textContent="Could not load DEX data. Check your internet connection and try again."}
+}
+async function checkSecurity(){
+ const address=document.getElementById("contract").value.trim();
+ const chain=document.getElementById("securityNetwork").value;
+ const box=document.getElementById("securityResult");
+ if(!/^0x[a-fA-F0-9]{40}$/.test(address)){
+  box.textContent="Enter a valid EVM contract address (0x followed by 40 hexadecimal characters).";
+  return;
+ }
+ box.textContent="Requesting security analysis...";
+ try{
+  const url="https://api.gopluslabs.io/api/v1/token_security/"+chain+"?contract_addresses="+address;
+  const response=await fetch(url);
+  if(!response.ok)throw new Error("Security service unavailable");
+  const data=await response.json();
+  const report=data.result?.[address.toLowerCase()]||data.result?.[address];
+  if(!report){box.textContent="No security report returned for this contract.";return}
+  const fields=[
+   ["Honeypot indicator",report.is_honeypot],
+   ["Buy tax",report.buy_tax],
+   ["Sell tax",report.sell_tax],
+   ["Owner can change balance",report.owner_change_balance],
+   ["Hidden owner",report.hidden_owner],
+   ["Blacklist function",report.is_blacklisted],
+   ["Mint function",report.is_mintable],
+   ["Open source",report.is_open_source]
+  ];
+  box.innerHTML="<b>Security indicators</b><br>"+fields.map(([k,v])=>
+   "<div style='padding:6px 0;border-bottom:1px solid #263650'>"+k+": <b>"+safe(v??"Not reported")+"</b></div>"
+  ).join("")+"<p>These indicators need human review. No scanner can guarantee contract safety.</p>";
+ }catch(e){box.textContent="Security API unavailable. Try again later."}
+}
+function safe(v){
+ return String(v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+</script>
+</body>
+</html>
